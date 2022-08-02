@@ -66,11 +66,13 @@ else:
     paths = [ path for path in args.inputs if path.is_file() ]
 
 print("Calulating total file size...")
-total_size = sum([
+total_size = sum(
     member.size
     for path in progressbar.progressbar(paths)
-    for member in tarfile.open(path).getmembers() if member.isfile()
-    ])
+    for member in tarfile.open(path).getmembers()
+    if member.isfile()
+)
+
 
 total_success = 0
 total_failed = 0
@@ -88,7 +90,7 @@ with progressbar.DataTransferBar(max_value=total_size) as progress:
                     for line in f:
                         source = json.loads(line)
                         source["log"] = { "file": { "name": logfile }}
-                        source.setdefault("winlog", dict())
+                        source.setdefault("winlog", {})
 
                         # Plain data created by nxlog is completely moved to winlog.event_data except blacklisted
                         if "EventID" in source:
@@ -149,7 +151,7 @@ with progressbar.DataTransferBar(max_value=total_size) as progress:
                             source["winlog"]["event_id"] = source["event_id"]
                             del source["event_id"]
                         # Also set event.code to event id
-                        source.setdefault("event", dict())["code"] = source["winlog"]["event_id"]
+                        source.setdefault("event", {})["code"] = source["winlog"]["event_id"]
 
                         progress.update(progress.value + len(line))
                         if args.output == "elasticsearch":

@@ -54,7 +54,7 @@ ___________                              _____
  License: GPL-3.0
  """)
 
-log.debug(f'Started Stopwatch')
+log.debug('Started Stopwatch')
 time_start = time.time()
 
 # Read mordor file json
@@ -105,7 +105,7 @@ df.apply(lambda x: x.dropna().to_dict(), axis=1).to_json(new_file_name,orient='r
 # Final time
 time_end = time.time()
 total_time = time_end - time_start
-log.debug(f'Stopped Stopwatch')
+log.debug('Stopped Stopwatch')
 
 # Final stats
 print("[+] Time taken:",total_time,"seconds")
