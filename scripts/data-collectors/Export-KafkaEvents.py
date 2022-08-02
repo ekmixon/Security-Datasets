@@ -58,14 +58,11 @@ if (args.dataset_name and args.output_dir is None) or (args.output_dir and args.
     parser.error("--dataset-name and --output-dir are required together")
 else:
     timestr = time.strftime("%Y%m%d_%H%M%S")
-    dataset_name = "{}{}_{}.json".format(args.output_dir, args.dataset_name, timestr)
-if args.kafka_group_id:
-    group = args.kafka_group_id
-else:
-    group = "securityevents"
+    dataset_name = f"{args.output_dir}{args.dataset_name}_{timestr}.json"
+group = args.kafka_group_id or "securityevents"
 # required arguments
 broker = args.kafka_broker
-topics = [item for item in args.kafka_topics.split(',')]
+topics = list(args.kafka_topics.split(','))
 
 def print_assignment(consumer, partitions):
     sys.stderr.write("""Assignment: {}
@@ -111,23 +108,22 @@ try:
             continue
         if msg.error():
             raise KafkaException(msg.error())
-        else:
-            # Proper message
-            sys.stderr.write('%% %s [%d] at offset %d with key %s:\n' % (msg.topic(), msg.partition(), msg.offset(), str(msg.key())))
-            # decode unicode to strings
-            security_event = msg.value().decode('utf8')
-            if args.extra_fields:
-                # convert string to dictionary
-                pythDict = json.loads(security_event)
-                # update dictionary with extra fields
-                pythDict.update(args.extra_fields)
-                # convert dictionary back to strings
-                security_event = json.dumps(pythDict)
-            if dataset_name:
-                with open("{}".format(dataset_name), 'a') as file:
-                    file.write(security_event + '\n')
-            else:       
-                print(security_event)
+        # Proper message
+        sys.stderr.write('%% %s [%d] at offset %d with key %s:\n' % (msg.topic(), msg.partition(), msg.offset(), str(msg.key())))
+        # decode unicode to strings
+        security_event = msg.value().decode('utf8')
+        if args.extra_fields:
+            # convert string to dictionary
+            pythDict = json.loads(security_event)
+            # update dictionary with extra fields
+            pythDict.update(args.extra_fields)
+            # convert dictionary back to strings
+            security_event = json.dumps(pythDict)
+        if dataset_name:
+            with open(f"{dataset_name}", 'a') as file:
+                file.write(security_event + '\n')
+        else:       
+            print(security_event)
 
 except KeyboardInterrupt:
     sys.stderr.write('%% Aborted by user\n')
@@ -136,4 +132,4 @@ finally:
     # Close down consumer to commit final offsets.
     c.close()
     if dataset_name:
-        sys.stderr.write("Events were written to {}\n".format(dataset_name))
+        sys.stderr.write(f"Events were written to {dataset_name}\n")

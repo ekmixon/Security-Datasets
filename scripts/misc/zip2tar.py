@@ -17,7 +17,7 @@ def parse_dirs(rootdir):
         for file in files:
             if 'zip' in os.path.join(subdir, file):
                 input_file_name = os.path.join(subdir, file)
-                output_file_name = os.path.splitext(input_file_name)[0] + '.tar.gz'
+                output_file_name = f'{os.path.splitext(input_file_name)[0]}.tar.gz'
                 zip2tar(input_file_name, output_file_name)
 
 def zip2tar(ifn, ofn):
